@@ -90,8 +90,8 @@ class WorkspaceTest(unittest.TestCase):
         path.chmod(0o755)
         return path
 
-    def generate(self, *extra, scaffold=True, git=False, check=True, destination=None):
-        command = [sys.executable, str(GENERATOR), str(destination or self.target), "--yes"]
+    def generate(self, *extra, scaffold=True, git=False, check=True, destination=None, generator=GENERATOR):
+        command = [sys.executable, str(generator), str(destination or self.target), "--yes"]
         if scaffold:
             command.append("--scaffold-only")
         if not git:
@@ -103,6 +103,12 @@ class WorkspaceTest(unittest.TestCase):
 
     def records(self):
         return [json.loads(line) for line in self.log.read_text().splitlines()] if self.log.exists() else []
+
+    def copy_generator(self):
+        relocated = self.work / "portable generator"
+        shutil.copytree(ROOT, relocated, ignore=shutil.ignore_patterns(
+            "__pycache__", ".git", ".test-output", ".codex", ".agents", ".aws"))
+        return relocated
 
 
 class RenderingTests(WorkspaceTest):
@@ -124,7 +130,7 @@ class RenderingTests(WorkspaceTest):
             self.assertTrue((self.target / name).is_file(), name)
         for environment in ("default", "local", "dev", "test", "prod"):
             self.assertEqual([file.name for file in (self.target / "config" / environment).iterdir()], [".gitkeep"])
-        for forbidden in ("vendor", "web/core", "secrets.php", "secrets.local.php", "composer.lock", "patches.lock.json"):
+        for forbidden in (".git", "vendor", "web/core", "secrets.php", "secrets.local.php", "composer.lock", "patches.lock.json"):
             self.assertFalse((self.target / forbidden).exists(), forbidden)
         self.assertFalse(self.log.exists(), "Scaffold rendering must not run Lando")
 
@@ -209,6 +215,35 @@ class RenderingTests(WorkspaceTest):
         self.generate()
         self.assertTrue((self.target / "composer.json").exists())
 
+    def test_output_inside_template_sources_is_rejected(self):
+        relocated = self.copy_generator()
+        destination = relocated / "templates/project/generated-site"
+        result = self.generate(destination=destination, generator=relocated / "scripts/create_project.py", check=False)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("outside templates/project", result.stderr)
+        self.assertFalse(destination.exists())
+
+    def test_template_output_guard_resolves_parent_symlinks(self):
+        relocated = self.copy_generator()
+        alias = self.work / "template-alias"
+        alias.symlink_to(relocated / "templates/project", target_is_directory=True)
+        destination = alias / "generated-site"
+        result = self.generate(destination=destination, generator=relocated / "scripts/create_project.py", check=False)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("outside templates/project", result.stderr)
+        self.assertFalse(destination.exists())
+
+    def test_separate_output_directory_preserves_template_sources(self):
+        relocated = self.copy_generator()
+        templates = relocated / "templates/project"
+        original = {str(path.relative_to(templates)): path.read_bytes() for path in templates.rglob('*') if path.is_file()}
+        destination = relocated / ".test-output/site"
+        self.generate(destination=destination, generator=relocated / "scripts/create_project.py", git=True)
+        remaining = {str(path.relative_to(templates)): path.read_bytes() for path in templates.rglob('*') if path.is_file()}
+        self.assertEqual(remaining, original)
+        self.assertTrue((destination / ".git").is_dir())
+        self.assertTrue((destination / "composer.json").is_file())
+
     def test_invalid_inputs_do_not_create_a_project(self):
         for arguments in (
             ["--machine-name", "Bad_Name"], ["--machine-name", "-invalid"],
@@ -248,6 +283,7 @@ class RenderingTests(WorkspaceTest):
         self.generate(git=True, *["--git-remote", "git@example.invalid:owner/site.git"])
         def git(*args):
             return subprocess.run(["git", "-C", str(self.target), *args], text=True, capture_output=True)
+        self.assertEqual(Path(git("rev-parse", "--show-toplevel").stdout.strip()), self.target.resolve())
         self.assertEqual(git("branch", "--show-current").stdout.strip(), "main")
         self.assertEqual(git("remote", "get-url", "origin").stdout.strip(), "git@example.invalid:owner/site.git")
         for name in ("secrets.php", "secrets.local.php", "dev.local.env", "vendor/autoload.php", "web/core/core.services.yml", "drush/sites/self.site.yml"):
@@ -264,8 +300,7 @@ class RenderingTests(WorkspaceTest):
         self.assertFalse(self.target.exists())
 
     def test_relocated_generator_needs_no_source_project(self):
-        relocated = self.work / "portable generator"
-        shutil.copytree(ROOT, relocated, ignore=shutil.ignore_patterns("__pycache__", ".git"))
+        relocated = self.copy_generator()
         result = subprocess.run(["bash", str(relocated / "create-project.sh"), str(self.target), "--yes", "--scaffold-only", "--no-git"], env=self.env, text=True, capture_output=True)
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertTrue((self.target / "scripts/setup-project.py").exists())

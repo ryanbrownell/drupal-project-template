@@ -5,6 +5,8 @@ This repository contains a generator, not an installed Drupal site. Source templ
 - Keep the CLI dependent only on Python 3.9+ standard library and Bash. Run PHP/Composer/Drush through Lando when exercising real generated projects; do not require host PHP.
 - Never copy source-project credentials, Drupal code, config exports, application patches or dependencies into the template.
 - Refuse nonempty destinations and keep setup rerunnable. Avoid shell interpolation of user input.
+- Keep generated test projects in disposable temporary directories and clean them up afterward. Never copy or commit build output into this repository or generate projects inside `templates/project/`. Retained inspection builds must use a separate destination outside the checkout or the ignored `.test-output/` directory.
+- Run test commands with Python bytecode writing disabled (`-B` or `PYTHONDONTWRITEBYTECODE=1`) so validation does not leave caches in the checkout.
 - Preserve first-start ordering: Lando must start before Drupal or vendor dependencies exist. Never add unconditional Composer/Drush build steps that prevent that bootstrap.
 - Commit manifests and patch locks in generated projects; do not store downloaded Drupal/vendor trees in this repository.
 - Keep deployment targets configurable and opt-in. Test remote behavior with isolated stubs; do not publish or deploy during generator validation.

@@ -39,6 +39,8 @@ Run `./create-project.sh --help` for all options, including `--no-git`, `--profi
 
 The generator initializes a local `main` repository unless `--no-git` is supplied. An optional origin is recorded locally. It does not create a commit, contact the origin, push, publish a GitHub repository, or deploy.
 
+All generated files, downloaded dependencies and local Git metadata go into the destination directory. The default is a new sibling directory (`../<machine-name>`). Output inside `templates/project/` is rejected so generated builds cannot become template inputs.
+
 ## What is generated
 
 - Lando services and tooling, `.lando` PHP/Drupal/Drush templates, a local proxy URL, mail capture and local environment examples.
@@ -69,24 +71,27 @@ Deployments use versioned releases and a `live` symlink with server-owned shared
 ## Validation
 
 ```bash
-python3 -m unittest discover -s tests -v
+python3 -B -m unittest discover -s tests -v
 ```
+
+Tests generate projects in disposable temporary directories and remove them afterward. They do not keep Drupal builds, dependencies, generated repositories, lock files or secrets in this checkout. `-B` prevents Python bytecode caches as well. If a build needs to be retained for inspection, use a separate directory outside the checkout or the ignored `.test-output/` directory; never copy build output into `templates/project/` or commit it to this repository.
 
 The suite exercises real file rendering, input escaping, destination protection, Git initialization/ignores, interactive defaults, standalone/resumable setup through a stub Lando, source-independent use, and release/deployment failure paths with isolated local tools. Optional PyYAML adds YAML parsing checks; JSON and XML use the standard library. If a PHP CLI is available, additional tests execute the settings loaders, installer guards and quality helper against synthetic fixtures. Set `DRUPAL_TEMPLATE_TEST_PHP=/path/to/php` to select an isolated interpreter. These tests do not install Drupal or connect to a database/server.
 
 The validation suite includes native PHP fixture checks, format/syntax checks and isolated integration tests. CI runs it with PHP 8.3 and 8.4. The generator and generated GitHub workflows can also be checked with `actionlint`.
 
-Fixture tests do not verify Composer dependency resolution, container runtime behavior or an actual SSH deployment. Validate installation in a Docker-enabled environment and test deployment against your hosting setup. To perform a local smoke test:
+Fixture tests do not verify Composer dependency resolution, container runtime behavior or an actual SSH deployment. Run a real Lando installation separately and test deployment against your hosting setup. To perform a local smoke test in a separate temporary project, including Git initialization:
 
 ```bash
-./create-project.sh /tmp/drupal-template-smoke --yes --no-git
+./create-project.sh /tmp/drupal-template-smoke --yes
 cd /tmp/drupal-template-smoke
+git status --short
 lando drush status
 lando composer quality
 ./scripts/setup.sh
 ```
 
-Inspect the site and a captured test email, confirm the second setup preserves its data, then stop/remove the disposable environment when finished.
+Inspect the site and a captured test email, confirm the second setup preserves its data, then destroy that disposable project's Lando environment and remove its directory. Keep the generator checkout free of smoke-test output.
 
 ## Upstream references
 

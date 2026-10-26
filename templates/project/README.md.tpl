@@ -120,7 +120,7 @@ Kernel and browser suites require an explicit `SIMPLETEST_DB` pointing to a **se
 
 ## GitHub setup and deployments
 
-The generator initializes `main` unless `--no-git` was requested. It creates no commits, pushes, repositories or releases. After reviewing the generated files and completing setup:
+The generator creates a local Git repository with `main` as its initial branch unless `--no-git` was requested. It supplies the project's `.gitignore` and records an `origin` URL when provided. Git metadata belongs to this generated project, independently of the generator repository. Creating the first commit and publishing to GitHub remain explicit steps. After reviewing the generated files and completing setup:
 
 ```bash
 git add .

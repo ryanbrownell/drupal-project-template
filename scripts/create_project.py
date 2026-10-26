@@ -119,6 +119,8 @@ def render_project(args):
     destination = Path(args.destination).expanduser().absolute()
     if destination.is_symlink():
         raise ValueError("The destination cannot be a symbolic link.")
+    if destination.resolve().is_relative_to(TEMPLATE_ROOT.resolve()):
+        raise ValueError("Project output must be outside templates/project; choose a separate destination directory.")
     if destination.exists() and (not destination.is_dir() or any(destination.iterdir())):
         raise ValueError(f"Destination must be new or completely empty: {destination}")
     if not args.scaffold_only and not shutil.which("lando"):
