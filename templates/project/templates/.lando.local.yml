@@ -1,0 +1,17 @@
+# Copy to the project root as .lando.local.yml and adapt as needed.
+config:
+  xdebug: true
+
+# For Kernel/Functional tests, provision a separate database service.
+# services:
+#   testdatabase:
+#     type: mariadb:11.4
+#     creds:
+#       user: drupal_test
+#       password: drupal_test
+#       database: drupal_test
+#   appserver:
+#     overrides:
+#       environment:
+#         SIMPLETEST_DB: mysql://drupal_test:drupal_test@testdatabase/drupal_test
+#         SIMPLETEST_BASE_URL: http://appserver

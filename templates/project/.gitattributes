@@ -1,0 +1,16 @@
+* text=auto eol=lf
+*.php diff=php
+*.module diff=php
+*.install diff=php
+*.inc diff=php
+*.theme diff=php
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.avif binary
+*.woff binary
+*.woff2 binary
+*.zip binary
+*.gz binary

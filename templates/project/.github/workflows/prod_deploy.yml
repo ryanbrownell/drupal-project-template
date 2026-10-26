@@ -1,0 +1,17 @@
+name: Deploy release to production
+on:
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Tested stable release tag, for example v1.0.0'
+        type: string
+        required: true
+permissions:
+  contents: read
+jobs:
+  deploy:
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: prod
+      ref: ${{ inputs.tag_name }}
+    secrets: inherit

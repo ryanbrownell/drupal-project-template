@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<ruleset name="Drupal project">
+  <description>Drupal standards for project-owned modules, themes and profiles.</description>
+  <file>web/modules/custom</file>
+  <file>web/themes/custom</file>
+  <file>web/profiles/custom</file>
+  <arg name="extensions" value="php,module,inc,install,profile,theme,test,yml"/>
+  <exclude-pattern>*/node_modules/*</exclude-pattern>
+  <exclude-pattern>*/vendor/*</exclude-pattern>
+  <rule ref="Drupal"/>
+  <rule ref="DrupalPractice"/>
+</ruleset>

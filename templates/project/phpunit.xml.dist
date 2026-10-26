@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit bootstrap="web/core/tests/bootstrap.php" colors="true" cacheDirectory=".phpunit.cache">
+  <testsuites>
+    <testsuite name="unit">
+      <directory suffix="Test.php">tests/src/Unit</directory>
+      <directory suffix="Test.php">web/modules/custom/*/tests/src/Unit</directory>
+      <directory suffix="Test.php">web/themes/custom/*/tests/src/Unit</directory>
+    </testsuite>
+    <testsuite name="kernel">
+      <directory suffix="Test.php">tests/src/Kernel</directory>
+      <directory suffix="Test.php">web/modules/custom/*/tests/src/Kernel</directory>
+    </testsuite>
+    <testsuite name="functional">
+      <directory suffix="Test.php">tests/src/Functional</directory>
+      <directory suffix="Test.php">web/modules/custom/*/tests/src/Functional</directory>
+    </testsuite>
+    <testsuite name="functional-javascript">
+      <directory suffix="Test.php">tests/src/FunctionalJavascript</directory>
+      <directory suffix="Test.php">web/modules/custom/*/tests/src/FunctionalJavascript</directory>
+    </testsuite>
+  </testsuites>
+  <php>
+    <ini name="error_reporting" value="-1"/>
+    <!-- Supply SIMPLETEST_DB explicitly for an isolated database, never the dev DB. -->
+    <env name="BROWSERTEST_OUTPUT_DIRECTORY" value="/tmp/drupal-browser-output"/>
+  </php>
+</phpunit>

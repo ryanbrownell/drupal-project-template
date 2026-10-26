@@ -1,0 +1,25 @@
+name: Test project generator
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php: ['8.3', '8.4']
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+      - name: Install optional YAML validator
+        run: python3 -m pip install PyYAML
+      - name: Run isolated generator, PHP helper, Git and deployment tests
+        run: python3 -m unittest discover -s tests -v

@@ -1,0 +1,27 @@
+# Copy and adapt into .lando/drush/self.site.yml, then remove the generated
+# drush/sites/self.site.yml and run lando php scripts/prepare-settings.php local.
+# Paths.root is the Drupal web root, not the Composer project directory.
+dev:
+  host: dev.example.invalid
+  user: deploy
+  root: /srv/www/example/live/web
+  uri: https://dev.example.invalid
+  paths:
+    drush-script: /srv/www/example/live/vendor/bin/drush
+    files: /srv/www/example/shared/files
+test:
+  host: test.example.invalid
+  user: deploy
+  root: /srv/www/example/live/web
+  uri: https://test.example.invalid
+  paths:
+    drush-script: /srv/www/example/live/vendor/bin/drush
+    files: /srv/www/example/shared/files
+prod:
+  host: www.example.invalid
+  user: deploy
+  root: /srv/www/example/live/web
+  uri: https://www.example.invalid
+  paths:
+    drush-script: /srv/www/example/live/vendor/bin/drush
+    files: /srv/www/example/shared/files

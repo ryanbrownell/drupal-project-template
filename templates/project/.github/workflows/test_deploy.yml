@@ -1,0 +1,19 @@
+name: Deploy release to test
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Stable release tag, for example v1.0.0'
+        type: string
+        required: true
+permissions:
+  contents: read
+jobs:
+  deploy:
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: test
+      ref: ${{ inputs.tag_name || github.ref_name }}
+    secrets: inherit
