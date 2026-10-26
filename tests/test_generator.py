@@ -147,7 +147,8 @@ class RenderingTests(WorkspaceTest):
                 continue
             content = path.read_text()
             self.assertFalse(re.search(r"@@[A-Z_]+@@", content), str(path))
-            self.assertFalse(re.search(r"dashmarketing|dashmanager|dashscene\.com", content, re.I), str(path))
+            # Generated files must not depend on this checkout or sibling source projects.
+            self.assertNotIn(str(ROOT.parent), content, str(path))
             if path.suffix == ".json":
                 json.loads(content)
             if content.startswith("<?xml"):
